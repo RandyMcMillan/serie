@@ -12,15 +12,14 @@ async fn main() -> std::io::Result<()> {
     println!("{}", local_data_dir.expect("REASON").display());
     let task_one = tokio::spawn(async {
         println!("Task one is started");
-        sleep(Duration::from_secs(2)).await;
+        sleep(Duration::from_secs(10)).await;
         println!("Task one is done");
     });
 
     let task_two = tokio::spawn(async {
-        println!("Task two is started");
-        sleep(Duration::from_secs(1)).await;
-        //println!("Task two is done");
+        println!("serie.run().await");
         let _ = serie::run().await;
+        sleep(Duration::from_secs(1)).await;
         println!("Task two is done");
     });
 
@@ -28,7 +27,7 @@ async fn main() -> std::io::Result<()> {
     //let _ = task_one.await.unwrap();
     let _ = task_two.await.unwrap();
     let _ = task_one.await.unwrap();
-Ok(())
+    Ok(())
 
     //serie::run()
 }
