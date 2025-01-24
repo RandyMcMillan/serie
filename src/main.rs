@@ -25,7 +25,6 @@ async fn get_blockheight() -> Result<String, Box<dyn Error>> {
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
-    println!("tokio_multi:simple");
     let cwd = env::current_dir().unwrap();
     let cwd_to_string_lossy: String = String::from(cwd.to_string_lossy());
     log::info!("{}", cwd_to_string_lossy);
