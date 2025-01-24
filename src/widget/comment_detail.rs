@@ -26,11 +26,11 @@ const FILE_CHANGE_DELETE_COLOR: Color = Color::Red;
 const FILE_CHANGE_MOVE_COLOR: Color = Color::Magenta;
 
 #[derive(Debug, Default)]
-pub struct CommitDetailState {
+pub struct CommentDetailState {
     offset: usize,
 }
 
-impl CommitDetailState {
+impl CommentDetailState {
     pub fn scroll_down(&mut self) {
         self.offset = self.offset.saturating_add(1);
     }
@@ -48,14 +48,14 @@ impl CommitDetailState {
     }
 }
 
-pub struct CommitDetail<'a> {
+pub struct CommentDetail<'a> {
     commit: &'a Commit,
     changes: &'a Vec<FileChange>,
     refs: &'a Vec<Ref>,
     config: &'a UiDetailConfig,
 }
 
-impl<'a> CommitDetail<'a> {
+impl<'a> CommentDetail<'a> {
     pub fn new(
         commit: &'a Commit,
         changes: &'a Vec<FileChange>,
@@ -71,8 +71,8 @@ impl<'a> CommitDetail<'a> {
     }
 }
 
-impl StatefulWidget for CommitDetail<'_> {
-    type State = CommitDetailState;
+impl StatefulWidget for CommentDetail<'_> {
+    type State = CommentDetailState;
 
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let [labels_area, value_area] =
@@ -91,7 +91,7 @@ impl StatefulWidget for CommitDetail<'_> {
     }
 }
 
-impl CommitDetail<'_> {
+impl CommentDetail<'_> {
     fn render_labels_paragraph(&self, lines: Vec<Line>, area: Rect, buf: &mut Buffer) {
         let paragraph = Paragraph::new(lines)
             .style(Style::default().fg(DEFAULT_TEXT_COLOR))
@@ -298,7 +298,7 @@ impl CommitDetail<'_> {
         Line::from("─".repeat(width).fg(DIVIDER_COLOR))
     }
 
-    fn update_state(&self, state: &mut CommitDetailState, line_count: usize, area_height: usize) {
+    fn update_state(&self, state: &mut CommentDetailState, line_count: usize, area_height: usize) {
         state.offset = state.offset.min(line_count.saturating_sub(area_height));
     }
 }

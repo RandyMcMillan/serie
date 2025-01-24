@@ -19,6 +19,10 @@ impl CommitHash {
     pub fn as_str(&self) -> &str {
         &self.0
     }
+    pub fn as_padded_string(&self) -> String {
+        let padded_commit_hash = &self.0.to_string();
+        format!("{0:>32}", padded_commit_hash)
+    }
 }
 
 impl From<&str> for CommitHash {
