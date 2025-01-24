@@ -200,7 +200,7 @@ impl CommitDetail<'_> {
         let parents = &self.commit.parent_commit_hashes;
         for (i, hash) in parents
             .iter()
-            .map(|hash| Span::raw(hash.as_short_hash()))
+            .map(|hash| Span::raw(hash.as_str()))
             .enumerate()
         {
             spans.push(hash);
