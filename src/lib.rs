@@ -13,6 +13,12 @@ mod view;
 mod widget;
 
 use std::path::Path;
+use dirs::*;
+use std::env;
+use tokio::time::{sleep, Duration};
+use tracing_log::log;
+use std::error::Error;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use app::App;
 use clap::{Parser, ValueEnum};
@@ -129,4 +135,40 @@ pub async fn run() -> std::io::Result<()> {
 
     ratatui::restore();
     ret
+}
+
+pub async fn get_blockheight() -> Result<String, Box<dyn Error>> {
+    let client = reqwest::Client::builder()
+        .build()
+        .expect("should be able to build reqwest client");
+    let blockheight = client
+        .get("https://mempool.space/api/blocks/tip/height")
+        .send()
+        .await?;
+    log::debug!("mempool.space status: {}", blockheight.status());
+    if blockheight.status() != reqwest::StatusCode::OK {
+        log::debug!("didn't get OK status: {}", blockheight.status());
+        Ok(String::from(">>>>>"))
+    } else {
+        let blockheight = blockheight.text().await?;
+        log::debug!("{}", blockheight);
+        Ok(blockheight)
+    }
+}
+
+pub async fn weeble_blockheight_wobble() -> String {
+
+    let blockheight = get_blockheight().await;
+
+    let now = SystemTime::now();
+    let since_the_epoch = now
+        .duration_since(UNIX_EPOCH)
+        .expect("Time went backwards"); // Handle potential errors
+
+    let blockheight_u64: u64 = blockheight.unwrap().parse().unwrap_or(0);
+    let seconds = since_the_epoch.as_secs();
+    let weeble = seconds / blockheight_u64;
+    let wobble = seconds % blockheight_u64;
+
+    String::from(format!("{:?}/{:?}/{:?}", weeble, blockheight_u64, wobble))
 }
