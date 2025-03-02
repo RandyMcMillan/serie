@@ -37,7 +37,7 @@ struct Args {
     order: CommitOrderType,
 
     /// Commit graph image cell width
-    #[arg(short, long, value_name = "TYPE")]
+    #[arg(short, long, value_name = "TYPE", default_value = "p2p")]
     graph_width: Option<GraphWidthType>,
 
     /// Preload all graph images
@@ -50,6 +50,7 @@ enum ImageProtocolType {
     Auto,
     Iterm,
     Kitty,
+    P2p,
 }
 
 impl From<ImageProtocolType> for protocol::ImageProtocol {
@@ -58,6 +59,7 @@ impl From<ImageProtocolType> for protocol::ImageProtocol {
             ImageProtocolType::Auto => protocol::auto_detect(),
             ImageProtocolType::Iterm => protocol::ImageProtocol::Iterm2,
             ImageProtocolType::Kitty => protocol::ImageProtocol::Kitty,
+            ImageProtocolType::P2p => protocol::ImageProtocol::P2p,
         }
     }
 }
@@ -81,6 +83,7 @@ impl From<CommitOrderType> for git::SortCommit {
 enum GraphWidthType {
     Double,
     Single,
+	P2p,
 }
 
 impl From<GraphWidthType> for graph::CellWidthType {
@@ -88,6 +91,7 @@ impl From<GraphWidthType> for graph::CellWidthType {
         match width {
             GraphWidthType::Double => graph::CellWidthType::Double,
             GraphWidthType::Single => graph::CellWidthType::Single,
+            GraphWidthType::P2p => graph::CellWidthType::Single,
         }
     }
 }
