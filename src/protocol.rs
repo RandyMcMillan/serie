@@ -2,6 +2,10 @@ use std::env;
 
 use base64::Engine;
 
+pub fn is_iterm2() -> bool {
+    env::var("TERM_PROGRAM").map_or(false, |term| term == "iTerm.app")
+}
+
 // By default assume the Iterm2 is the best protocol to use for all terminals *unless* an env
 // variable is set that suggests the terminal is probably Kitty.
 pub fn auto_detect() -> ImageProtocol {
@@ -13,13 +17,18 @@ pub fn auto_detect() -> ImageProtocol {
     if env::var("TERM").is_ok_and(|t| t == "xterm-ghostty") {
         return ImageProtocol::Kitty;
     }
-    ImageProtocol::Iterm2
+    if is_iterm2() {
+		ImageProtocol::Iterm2
+    } else {
+		ImageProtocol::P2p
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
 pub enum ImageProtocol {
     Iterm2,
     Kitty,
+    P2p,
 }
 
 impl ImageProtocol {
@@ -27,6 +36,9 @@ impl ImageProtocol {
         match self {
             ImageProtocol::Iterm2 => iterm2_encode(bytes, cell_width, 1),
             ImageProtocol::Kitty => kitty_encode(bytes, cell_width, 1),
+			//TODO we indicate if commit is present on nostr and or provided
+			//by p2p impl
+            ImageProtocol::P2p => {String::from(">>>")},
         }
     }
 
@@ -34,6 +46,7 @@ impl ImageProtocol {
         match self {
             ImageProtocol::Iterm2 => {}
             ImageProtocol::Kitty => kitty_clear_line(y),
+            ImageProtocol::P2p => {}
         }
     }
 }
@@ -42,7 +55,16 @@ fn to_base64_str(bytes: &[u8]) -> String {
     base64::engine::general_purpose::STANDARD.encode(bytes)
 }
 
-// https://iterm2.com/documentation-images.html
+#[warn(dead_code)]
+fn p2p_encode(bytes: &[u8], cell_width: usize, cell_height: usize) -> String {
+    format!(
+        "\x1b]1337;File=size={};width={};height={};preserveAspectRatio=0;inline=1:{}\u{0007}",
+        bytes.len(),
+        cell_width,
+        cell_height,
+        to_base64_str(bytes)
+    )
+}
 fn iterm2_encode(bytes: &[u8], cell_width: usize, cell_height: usize) -> String {
     format!(
         "\x1b]1337;File=size={};width={};height={};preserveAspectRatio=0;inline=1:{}\u{0007}",
