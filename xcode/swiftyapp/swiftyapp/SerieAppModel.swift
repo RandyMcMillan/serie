@@ -287,10 +287,12 @@ final class SerieAppModel: ObservableObject {
         if filteredCommits.isEmpty {
             selectedCommitHash = nil
             selectedCommitDetail = nil
-        } else if let selectedCommitHash, !filteredCommits.contains(where: { $0.hash == selectedCommitHash }) {
-            selectedCommitHash = filteredCommits.first?.hash
-            if let hash = selectedCommitHash {
-                try? loadCommitDetail(hash: hash)
+        } else if let currentSelectedHash = selectedCommitHash,
+                  !filteredCommits.contains(where: { $0.hash == currentSelectedHash }) {
+            let nextHash = filteredCommits.first?.hash
+            selectedCommitHash = nextHash
+            if let nextHash {
+                try? loadCommitDetail(hash: nextHash)
             }
         }
         searchState.matchCount = filteredCommits.count
