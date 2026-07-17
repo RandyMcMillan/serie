@@ -300,10 +300,33 @@ private struct SerieCommitDetailPane: View {
 
     private func bodySection(_ detail: SerieCommitDetail) -> some View {
         VStack(alignment: .leading, spacing: 16) {
-            detailCard(title: "Commit") {
-                LabeledContent("Hash", value: detail.commit.hash)
-                LabeledContent("Parents", value: detail.commit.parents.joined(separator: " "))
-                LabeledContent("Kind", value: String(describing: detail.commit.kind))
+            detailCard(title: "Metadata") {
+                VStack(alignment: .leading, spacing: 10) {
+                    labeledLine("Author", value: personLine(
+                        name: detail.commit.authorName,
+                        email: detail.commit.authorEmail,
+                        date: detail.commit.authorDate
+                    ))
+
+                    if detail.commit.authorName != detail.commit.committerName ||
+                        detail.commit.authorEmail != detail.commit.committerEmail ||
+                        detail.commit.authorDate != detail.commit.committerDate {
+                        labeledLine("Committer", value: personLine(
+                            name: detail.commit.committerName,
+                            email: detail.commit.committerEmail,
+                            date: detail.commit.committerDate
+                        ))
+                    }
+
+                    labeledLine("SHA", value: detail.commit.hash)
+                    if !detail.commit.parents.isEmpty {
+                        labeledLine("Parents", value: detail.commit.parents.joined(separator: " "))
+                    }
+                    if !detail.commit.refs.isEmpty {
+                        labeledLine("Refs", value: detail.commit.refs.map(\.name).joined(separator: " "))
+                    }
+                    labeledLine("Kind", value: String(describing: detail.commit.kind))
+                }
             }
 
             if !detail.commit.body.isEmpty {
@@ -340,6 +363,19 @@ private struct SerieCommitDetailPane: View {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(Color.secondary.opacity(0.08))
         )
+    }
+
+    private func labeledLine(_ label: String, value: String) -> some View {
+        LabeledContent(label) {
+            Text(value)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .font(.callout)
+                .textSelection(.enabled)
+        }
+    }
+
+    private func personLine(name: String, email: String, date: String) -> String {
+        "\(name) <\(email)> \(date)"
     }
 }
 
