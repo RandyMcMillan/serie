@@ -27,6 +27,14 @@ struct SerieUserCommandState: Equatable {
     var number: Int = 0
 }
 
+enum SerieScreen: Equatable {
+    case list
+    case detail
+    case refs
+    case userCommand(Int)
+    case help
+}
+
 struct SerieListRefreshState: Equatable {
     var commitHash: String
     var selected: Int
@@ -66,6 +74,7 @@ final class SerieAppModel: ObservableObject {
     @Published var searchState = SerieSearchState()
     @Published var refsState = SerieRefsState()
     @Published var userCommandState = SerieUserCommandState()
+    @Published var activeScreen: SerieScreen = .list
     @Published var refreshContext: SerieRefreshContext?
 
     init(
@@ -178,10 +187,17 @@ final class SerieAppModel: ObservableObject {
             return nil
         }
 
-        switch userCommandState.number {
-        case 0 where refsState.selectedPath.isEmpty && refsState.openedPaths.isEmpty:
+        switch activeScreen {
+        case .list:
             return .list(listState)
-        case 0:
+        case .detail:
+            return .detail(listState)
+        case let .userCommand(number):
+            return .userCommand(
+                list: listState,
+                command: SerieUserCommandRefreshState(number: number)
+            )
+        case .refs:
             return .refs(
                 list: listState,
                 refs: SerieRefsRefreshState(
@@ -189,11 +205,8 @@ final class SerieAppModel: ObservableObject {
                     opened: refsState.openedPaths
                 )
             )
-        default:
-            return .userCommand(
-                list: listState,
-                command: SerieUserCommandRefreshState(number: userCommandState.number)
-            )
+        case .help:
+            return .list(listState)
         }
     }
 }
