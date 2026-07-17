@@ -95,6 +95,17 @@ final class SerieAppModel: ObservableObject {
         selectedCommitDetail?.commit
     }
 
+    var filteredCommits: [SerieCommitSummary] {
+        filter(commits: commits)
+    }
+
+    var selectedCommitIndex: Int? {
+        guard let selectedCommitHash else {
+            return nil
+        }
+        return filteredCommits.firstIndex(where: { $0.hash == selectedCommitHash })
+    }
+
     func loadRepositorySnapshot() throws {
         isLoading = true
         defer { isLoading = false }
@@ -149,6 +160,47 @@ final class SerieAppModel: ObservableObject {
             errorMessage = error.localizedDescription
             throw error
         }
+    }
+
+    func selectNextCommit() throws {
+        guard !filteredCommits.isEmpty else {
+            return
+        }
+        let nextIndex = min((selectedCommitIndex ?? -1) + 1, filteredCommits.count - 1)
+        try selectCommit(hash: filteredCommits[nextIndex].hash)
+        listState.selectedIndex = nextIndex
+    }
+
+    func selectPreviousCommit() throws {
+        guard !filteredCommits.isEmpty else {
+            return
+        }
+        let previousIndex = max((selectedCommitIndex ?? filteredCommits.count) - 1, 0)
+        try selectCommit(hash: filteredCommits[previousIndex].hash)
+        listState.selectedIndex = previousIndex
+    }
+
+    func selectFirstCommit() throws {
+        guard let first = filteredCommits.first else {
+            return
+        }
+        try selectCommit(hash: first.hash)
+        listState.selectedIndex = 0
+    }
+
+    func selectLastCommit() throws {
+        guard let lastIndex = filteredCommits.indices.last else {
+            return
+        }
+        try selectCommit(hash: filteredCommits[lastIndex].hash)
+        listState.selectedIndex = lastIndex
+    }
+
+    func copySelectedCommitHash(short: Bool = false) {
+        guard let selectedCommit = selectedCommit else {
+            return
+        }
+        copyToPasteboard(short ? selectedCommit.shortHash : selectedCommit.hash)
     }
 
     func restore(listState: SerieListRefreshState) {
@@ -208,6 +260,85 @@ final class SerieAppModel: ObservableObject {
         case .help:
             return .list(listState)
         }
+    }
+
+    func updateSearchQuery(_ query: String) {
+        searchState.query = query
+        if let selectedCommitHash, !filteredCommits.contains(where: { $0.hash == selectedCommitHash }) {
+            selectedCommitHash = filteredCommits.first?.hash
+            if let hash = selectedCommitHash {
+                try? loadCommitDetail(hash: hash)
+            }
+        }
+        searchState.matchCount = filteredCommits.count
+    }
+
+    func toggleIgnoreCase() {
+        searchState.ignoreCase.toggle()
+        updateSearchQuery(searchState.query)
+    }
+
+    func toggleFuzzy() {
+        searchState.fuzzy.toggle()
+        updateSearchQuery(searchState.query)
+    }
+
+    private func filter(commits: [SerieCommitSummary]) -> [SerieCommitSummary] {
+        let query = searchState.query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else {
+            return commits
+        }
+
+        return commits.filter { commit in
+            let haystack = searchableText(for: commit)
+            if searchState.fuzzy {
+                return isSubsequence(query: normalized(query), in: normalized(haystack))
+            } else {
+                return normalized(haystack).contains(normalized(query))
+            }
+        }
+    }
+
+    private func searchableText(for commit: SerieCommitSummary) -> String {
+        [
+            commit.hash,
+            commit.shortHash,
+            commit.authorName,
+            commit.authorEmail,
+            commit.subject,
+            commit.body,
+            commit.parents.joined(separator: " "),
+            commit.refs.map(\.name).joined(separator: " ")
+        ]
+        .joined(separator: " ")
+    }
+
+    private func normalized(_ value: String) -> String {
+        searchState.ignoreCase ? value.lowercased() : value
+    }
+
+    private func isSubsequence(query: String, in candidate: String) -> Bool {
+        guard !query.isEmpty else {
+            return true
+        }
+
+        var candidateIndex = candidate.startIndex
+        for character in query {
+            guard let found = candidate[candidateIndex...].firstIndex(of: character) else {
+                return false
+            }
+            candidateIndex = candidate.index(after: found)
+        }
+        return true
+    }
+
+    private func copyToPasteboard(_ string: String) {
+#if canImport(UIKit)
+        UIPasteboard.general.string = string
+#elseif canImport(AppKit)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(string, forType: .string)
+#endif
     }
 }
 
