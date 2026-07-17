@@ -32,11 +32,7 @@ struct ContentView: View {
     }
 
     private func loadRepository() {
-        do {
-            try model.loadRepositorySnapshot()
-        } catch {
-            model.clearError()
-        }
+        model.loadRepositorySnapshot()
     }
 }
 
@@ -106,14 +102,14 @@ private struct SerieCommitListPane: View {
                                     commit: commit,
                                     isSelected: commit.hash == model.selectedCommitHash,
                                     onSelect: {
-                                        try? model.selectFilteredCommit(index: index)
+                                        model.selectFilteredCommit(index: index)
                                     },
                                     onCopyShort: {
-                                        try? model.selectCommit(hash: commit.hash)
+                                        model.selectCommit(hash: commit.hash)
                                         model.copySelectedCommitHash(short: true)
                                     },
                                     onCopyFull: {
-                                        try? model.selectCommit(hash: commit.hash)
+                                        model.selectCommit(hash: commit.hash)
                                         model.copySelectedCommitHash()
                                     }
                                 )
