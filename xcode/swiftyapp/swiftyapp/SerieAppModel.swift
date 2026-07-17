@@ -1,6 +1,11 @@
 import Foundation
 import SwiftUI
 import RustyLib
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
 struct SerieListState: Equatable {
     var selectedIndex: Int = 0
@@ -142,6 +147,14 @@ final class SerieAppModel: ObservableObject {
             return
         }
         try selectCommit(hash: commits[index].hash)
+    }
+
+    func selectFilteredCommit(index: Int) throws {
+        guard filteredCommits.indices.contains(index) else {
+            return
+        }
+        try selectCommit(hash: filteredCommits[index].hash)
+        listState.selectedIndex = index
     }
 
     func selectCommit(hash: String) throws {
