@@ -160,6 +160,9 @@ final class SerieAppModel: ObservableObject {
     func selectCommit(hash: String) throws {
         selectedCommitHash = hash
         try loadCommitDetail(hash: hash)
+        if let index = filteredCommits.firstIndex(where: { $0.hash == hash }) {
+            listState.selectedIndex = index
+        }
     }
 
     func loadCommitDetail(hash: String) throws {
@@ -281,7 +284,10 @@ final class SerieAppModel: ObservableObject {
 
     func updateSearchQuery(_ query: String) {
         searchState.query = query
-        if let selectedCommitHash, !filteredCommits.contains(where: { $0.hash == selectedCommitHash }) {
+        if filteredCommits.isEmpty {
+            selectedCommitHash = nil
+            selectedCommitDetail = nil
+        } else if let selectedCommitHash, !filteredCommits.contains(where: { $0.hash == selectedCommitHash }) {
             selectedCommitHash = filteredCommits.first?.hash
             if let hash = selectedCommitHash {
                 try? loadCommitDetail(hash: hash)
