@@ -71,7 +71,7 @@ xcodebuild -create-xcframework \
     -library "${TARGETDIR}/${CATALYST_TARGET}/${RELDIR}/${STATIC_LIB_NAME}" -headers "${NEW_HEADER_DIR}" \
     -output "${XCFRAMEWORK_PATH}"
 
-rm -rf "${NEW_HEADER_DIR}"
+## rm -rf "${NEW_HEADER_DIR}"
 
 cd ../
 
