@@ -175,6 +175,10 @@ final class SerieAppModel: ObservableObject {
         }
     }
 
+    func clearError() {
+        errorMessage = nil
+    }
+
     func selectNextCommit() throws {
         guard !filteredCommits.isEmpty else {
             return
