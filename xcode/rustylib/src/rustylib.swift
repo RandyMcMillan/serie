@@ -394,6 +394,27 @@ private struct FfiConverterUInt32: FfiConverterPrimitive {
     }
 }
 
+private struct FfiConverterBool: FfiConverter {
+    typealias FfiType = Int8
+    typealias SwiftType = Bool
+
+    static func lift(_ value: Int8) throws -> Bool {
+        return value != 0
+    }
+
+    static func lower(_ value: Bool) -> Int8 {
+        return value ? 1 : 0
+    }
+
+    static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Bool {
+        return try lift(readInt(&buf))
+    }
+
+    static func write(_ value: Bool, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
 private struct FfiConverterString: FfiConverter {
     typealias SwiftType = String
     typealias FfiType = RustBuffer
@@ -1078,6 +1099,14 @@ public func serieCommitDetail(path: String, commitHash: String) -> SerieCommitDe
     })
 }
 
+public func serieIsGitRepository(path: String) -> Bool {
+    return try! FfiConverterBool.lift(try! rustCall {
+        uniffi_rustylib_fn_func_serie_is_git_repository(
+            FfiConverterString.lower(path), $0
+        )
+    })
+}
+
 public func serieRepositorySnapshot(path: String, maxCount: UInt32?, order: SerieCommitOrderType) -> SerieRepositorySnapshot {
     return try! FfiConverterTypeSerieRepositorySnapshot.lift(try! rustCall {
         uniffi_rustylib_fn_func_serie_repository_snapshot(
@@ -1117,6 +1146,9 @@ private var initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if uniffi_rustylib_checksum_func_serie_commit_detail() != 28531 {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if uniffi_rustylib_checksum_func_serie_is_git_repository() != 22362 {
         return InitializationResult.apiChecksumMismatch
     }
     if uniffi_rustylib_checksum_func_serie_repository_snapshot() != 31465 {

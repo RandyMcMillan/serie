@@ -267,6 +267,11 @@ RustBuffer uniffi_rustylib_fn_func_rust_hello(RustCallStatus *_Nonnull out_statu
 RustBuffer uniffi_rustylib_fn_func_serie_commit_detail(RustBuffer path, RustBuffer commit_hash, RustCallStatus *_Nonnull out_status
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_RUSTYLIB_FN_FUNC_SERIE_IS_GIT_REPOSITORY
+#define UNIFFI_FFIDEF_UNIFFI_RUSTYLIB_FN_FUNC_SERIE_IS_GIT_REPOSITORY
+int8_t uniffi_rustylib_fn_func_serie_is_git_repository(RustBuffer path, RustCallStatus *_Nonnull out_status
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_RUSTYLIB_FN_FUNC_SERIE_REPOSITORY_SNAPSHOT
 #define UNIFFI_FFIDEF_UNIFFI_RUSTYLIB_FN_FUNC_SERIE_REPOSITORY_SNAPSHOT
 RustBuffer uniffi_rustylib_fn_func_serie_repository_snapshot(RustBuffer path, RustBuffer max_count, RustBuffer order, RustCallStatus *_Nonnull out_status
@@ -573,6 +578,12 @@ uint16_t uniffi_rustylib_checksum_func_rust_hello(void
 #ifndef UNIFFI_FFIDEF_UNIFFI_RUSTYLIB_CHECKSUM_FUNC_SERIE_COMMIT_DETAIL
 #define UNIFFI_FFIDEF_UNIFFI_RUSTYLIB_CHECKSUM_FUNC_SERIE_COMMIT_DETAIL
 uint16_t uniffi_rustylib_checksum_func_serie_commit_detail(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_RUSTYLIB_CHECKSUM_FUNC_SERIE_IS_GIT_REPOSITORY
+#define UNIFFI_FFIDEF_UNIFFI_RUSTYLIB_CHECKSUM_FUNC_SERIE_IS_GIT_REPOSITORY
+uint16_t uniffi_rustylib_checksum_func_serie_is_git_repository(void
     
 );
 #endif
