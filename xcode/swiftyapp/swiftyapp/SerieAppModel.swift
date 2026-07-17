@@ -111,108 +111,94 @@ final class SerieAppModel: ObservableObject {
         return filteredCommits.firstIndex(where: { $0.hash == selectedCommitHash })
     }
 
-    func loadRepositorySnapshot() throws {
+    func loadRepositorySnapshot() {
         isLoading = true
         defer { isLoading = false }
 
-        do {
-            let snapshot = serieRepositorySnapshot(
-                path: repositoryPath,
-                maxCount: maxCount,
-                order: commitOrder
-            )
-            self.snapshot = snapshot
-            self.errorMessage = nil
+        let snapshot = serieRepositorySnapshot(
+            path: repositoryPath,
+            maxCount: maxCount,
+            order: commitOrder
+        )
+        self.snapshot = snapshot
+        self.errorMessage = nil
 
-            if let selectedCommitHash,
-               snapshot.commits.contains(where: { $0.hash == selectedCommitHash }) {
-                try loadCommitDetail(hash: selectedCommitHash)
-            } else if let firstCommit = snapshot.commits.first {
-                try selectCommit(hash: firstCommit.hash)
-            } else {
-                self.selectedCommitHash = nil
-                self.selectedCommitDetail = nil
-            }
-        } catch {
-            snapshot = nil
-            selectedCommitHash = nil
-            selectedCommitDetail = nil
-            errorMessage = error.localizedDescription
-            throw error
+        if let selectedCommitHash,
+           snapshot.commits.contains(where: { $0.hash == selectedCommitHash }) {
+            loadCommitDetail(hash: selectedCommitHash)
+        } else if let firstCommit = snapshot.commits.first {
+            selectCommit(hash: firstCommit.hash)
+        } else {
+            self.selectedCommitHash = nil
+            self.selectedCommitDetail = nil
         }
     }
 
-    func selectCommit(index: Int) throws {
+    func selectCommit(index: Int) {
         guard commits.indices.contains(index) else {
             return
         }
-        try selectCommit(hash: commits[index].hash)
+        selectCommit(hash: commits[index].hash)
     }
 
-    func selectFilteredCommit(index: Int) throws {
+    func selectFilteredCommit(index: Int) {
         guard filteredCommits.indices.contains(index) else {
             return
         }
-        try selectCommit(hash: filteredCommits[index].hash)
+        selectCommit(hash: filteredCommits[index].hash)
         listState.selectedIndex = index
     }
 
-    func selectCommit(hash: String) throws {
+    func selectCommit(hash: String) {
         selectedCommitHash = hash
-        try loadCommitDetail(hash: hash)
+        loadCommitDetail(hash: hash)
         if let index = filteredCommits.firstIndex(where: { $0.hash == hash }) {
             listState.selectedIndex = index
         }
     }
 
-    func loadCommitDetail(hash: String) throws {
-        do {
-            let detail = serieCommitDetail(path: repositoryPath, commitHash: hash)
-            selectedCommitDetail = detail
-            selectedCommitHash = hash
-            errorMessage = nil
-        } catch {
-            selectedCommitDetail = nil
-            errorMessage = error.localizedDescription
-            throw error
-        }
+    func loadCommitDetail(hash: String) {
+        let detail = serieCommitDetail(path: repositoryPath, commitHash: hash)
+        selectedCommitDetail = detail
+        selectedCommitHash = hash
+        errorMessage = nil
     }
 
     func clearError() {
         errorMessage = nil
     }
 
-    func selectNextCommit() throws {
+    func selectNextCommit() {
         guard !filteredCommits.isEmpty else {
             return
         }
         let nextIndex = min((selectedCommitIndex ?? -1) + 1, filteredCommits.count - 1)
-        try selectCommit(hash: filteredCommits[nextIndex].hash)
+        selectCommit(hash: filteredCommits[nextIndex].hash)
         listState.selectedIndex = nextIndex
     }
 
-    func selectPreviousCommit() throws {
+    func selectPreviousCommit() {
         guard !filteredCommits.isEmpty else {
             return
         }
         let previousIndex = max((selectedCommitIndex ?? filteredCommits.count) - 1, 0)
-        try selectCommit(hash: filteredCommits[previousIndex].hash)
+        selectCommit(hash: filteredCommits[previousIndex].hash)
         listState.selectedIndex = previousIndex
     }
 
-    func selectFirstCommit() throws {
+    func selectFirstCommit() {
         guard let first = filteredCommits.first else {
             return
         }
-        try selectCommit(hash: first.hash)
+        selectCommit(hash: first.hash)
         listState.selectedIndex = 0
     }
 
-    func selectLastCommit() throws {
+    func selectLastCommit() {
         guard let lastIndex = filteredCommits.indices.last else {
             return
         }
-        try selectCommit(hash: filteredCommits[lastIndex].hash)
+        selectCommit(hash: filteredCommits[lastIndex].hash)
         listState.selectedIndex = lastIndex
     }
 
@@ -292,7 +278,7 @@ final class SerieAppModel: ObservableObject {
             let nextHash = filteredCommits.first?.hash
             selectedCommitHash = nextHash
             if let nextHash {
-                try? loadCommitDetail(hash: nextHash)
+                loadCommitDetail(hash: nextHash)
             }
         }
         searchState.matchCount = filteredCommits.count
