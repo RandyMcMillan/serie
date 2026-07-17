@@ -109,11 +109,11 @@ private struct SerieCommitListPane: View {
                                         try? model.selectFilteredCommit(index: index)
                                     },
                                     onCopyShort: {
-                                        model.selectedCommitHash = commit.hash
+                                        try? model.selectCommit(hash: commit.hash)
                                         model.copySelectedCommitHash(short: true)
                                     },
                                     onCopyFull: {
-                                        model.selectedCommitHash = commit.hash
+                                        try? model.selectCommit(hash: commit.hash)
                                         model.copySelectedCommitHash()
                                     }
                                 )
