@@ -63,6 +63,19 @@ enum SerieRefreshContext: Equatable {
     case refs(list: SerieListRefreshState, refs: SerieRefsRefreshState)
 }
 
+private func defaultSerieRepositoryPath() -> String {
+    let start = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+    var current = start
+    for _ in 0..<8 {
+        if FileManager.default.fileExists(atPath: current.appendingPathComponent("Cargo.toml").path),
+           FileManager.default.fileExists(atPath: current.appendingPathComponent("src").path) {
+            return current.path
+        }
+        current.deleteLastPathComponent()
+    }
+    return start.path
+}
+
 @MainActor
 final class SerieAppModel: ObservableObject {
     @Published var repositoryPath: String
@@ -83,7 +96,7 @@ final class SerieAppModel: ObservableObject {
     @Published var refreshContext: SerieRefreshContext?
 
     init(
-        repositoryPath: String = FileManager.default.currentDirectoryPath,
+        repositoryPath: String = defaultSerieRepositoryPath(),
         maxCount: UInt32? = nil,
         commitOrder: SerieCommitOrderType = .chrono
     ) {
@@ -114,6 +127,14 @@ final class SerieAppModel: ObservableObject {
     func loadRepositorySnapshot() {
         isLoading = true
         defer { isLoading = false }
+
+        guard serieIsGitRepository(path: repositoryPath) else {
+            snapshot = nil
+            selectedCommitHash = nil
+            selectedCommitDetail = nil
+            errorMessage = "Not a git repository: \(repositoryPath)"
+            return
+        }
 
         let snapshot = serieRepositorySnapshot(
             path: repositoryPath,

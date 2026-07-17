@@ -92,6 +92,11 @@ pub fn serie_version() -> String {
 }
 
 #[uniffi::export]
+pub fn serie_is_git_repository(path: String) -> bool {
+    is_git_repository(Path::new(&path))
+}
+
+#[uniffi::export]
 pub fn serie_repository_snapshot(
     path: String,
     max_count: Option<u32>,
@@ -143,6 +148,26 @@ fn load_repository(path: &str, max_count: Option<u32>, order: SerieCommitOrderTy
     let max_count = max_count.map(|count| count as usize);
     Repository::load(Path::new(path), sort, max_count)
         .unwrap_or_else(|error| panic!("failed to load repository at {path}: {error}"))
+}
+
+fn is_git_repository(path: &Path) -> bool {
+    let inside_work_tree = std::process::Command::new("git")
+        .arg("rev-parse")
+        .arg("--is-inside-work-tree")
+        .current_dir(path)
+        .output()
+        .map(|output| output.status.success() && output.stdout == b"true\n")
+        .unwrap_or(false);
+
+    let bare_repository = std::process::Command::new("git")
+        .arg("rev-parse")
+        .arg("--is-bare-repository")
+        .current_dir(path)
+        .output()
+        .map(|output| output.status.success() && output.stdout == b"true\n")
+        .unwrap_or(false);
+
+    inside_work_tree || bare_repository
 }
 
 fn commit_summary(commit: &GitCommit, refs: Vec<SerieRepositoryRef>) -> SerieCommitSummary {
